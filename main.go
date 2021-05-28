@@ -1,14 +1,15 @@
 package main
 
 import (
+	_ "testbeego/models"
 	_ "testbeego/routers"
 
 	beego "github.com/beego/beego/v2/server/web"
 )
 
 func main() {
-	beego.AddFuncMap("prepage", ShowPrePage)
-	beego.AddFuncMap("nextpage", ShowNextPage)
+	beego.AddFuncMap("ShowPrePage", ShowPrePage)
+	beego.AddFuncMap("ShowNextPage", ShowNextPage)
 	beego.Run()
 }
 

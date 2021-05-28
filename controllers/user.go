@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"fmt"
+	"encoding/base64"
 	"testbeego/models"
 
 	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 )
 
@@ -23,11 +24,11 @@ func (this *UserController) HandlePost() {
 	userName := this.GetString("userName")
 	pwd := this.GetString("password")
 
-	//fmt.Printf(userName,pwd)
+	//logs.Info(userName,pwd)
 	//2.校验数据
 	if userName == "" || pwd == "" {
 		this.Data["errmsg"] = "注册数据不完整，请重新注册"
-		fmt.Printf("注册数据不完整，请重新注册")
+		logs.Info("注册数据不完整，请重新注册")
 		this.TplName = "register.html"
 		return
 	}
@@ -39,6 +40,7 @@ func (this *UserController) HandlePost() {
 	//给插入对象赋值
 	user.Name = userName
 	user.PassWord = pwd
+	user.Power = 1
 	//插入
 	o.Insert(&user)
 	//返回结果
@@ -51,7 +53,16 @@ func (this *UserController) HandlePost() {
 
 //展示登录页面
 func (this *UserController) ShowLogin() {
-	this.Data["data"] = "heheh"
+	userName := this.Ctx.GetCookie("userName")
+	data, _ := base64.StdEncoding.DecodeString(userName)
+	logs.Info(userName)
+	if userName == "" {
+		this.Data["userName"] = ""
+		this.Data["checked"] = ""
+	} else {
+		this.Data["userName"] = string(data)
+		this.Data["checked"] = "checked"
+	}
 	this.TplName = "login.html"
 }
 func (this *UserController) HandleLogin() {
@@ -81,8 +92,33 @@ func (this *UserController) HandleLogin() {
 		this.TplName = "login.html"
 		return
 	}
+	if user.Power != 1 {
+		this.Data["errmsg"] = "没有访问权限"
+		this.TplName = "login.html"
+		return
+	}
 
 	//4.返回页面
 	//this.Ctx.WriteString("登录成功")
-	this.Redirect("/showArticleList", 302)
+	data := this.GetString("remember")
+	logs.Info(data)
+	if data == "on" {
+		temp := base64.StdEncoding.EncodeToString([]byte(userName))
+		this.Ctx.SetCookie("userName", temp, 100)
+	} else {
+		this.Ctx.SetCookie("userName", userName, -1)
+	}
+
+	this.SetSession("userName", userName)
+	//this.Ctx.WriteString("登录成功")
+
+	this.Redirect("/Article/showArticleList", 302)
+}
+
+//退出登录
+func (this *UserController) Logout() {
+	//删除session
+	this.DelSession("userName")
+	//跳转登录页面
+	this.Redirect("/login", 302)
 }
