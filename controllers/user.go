@@ -104,7 +104,7 @@ func (this *UserController) HandleLogin() {
 	logs.Info(data)
 	if data == "on" {
 		temp := base64.StdEncoding.EncodeToString([]byte(userName))
-		this.Ctx.SetCookie("userName", temp, 100)
+		this.Ctx.SetCookie("userName", temp, 24*3600*30)
 	} else {
 		this.Ctx.SetCookie("userName", userName, -1)
 	}

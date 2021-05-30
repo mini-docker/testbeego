@@ -6,7 +6,7 @@ import (
 	"math"
 	"path"
 	"testbeego/models"
-	"time"
+	"testbeego/tool"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
@@ -316,7 +316,8 @@ func UploadFile(this *beego.Controller, filePath string) string {
 	}
 
 	//3.防止重名
-	fileName := time.Now().Format("2006-01-02-15:04:05") + ext
+	fileName := tool.RandStringRunes(6) + ext
+	// logs.Info("fileName: ", fileName)
 	//存储
 	this.SaveToFile(filePath, "./static/img/"+fileName)
 	return "/static/img/" + fileName
