@@ -7,14 +7,14 @@ import (
 	"math"
 	"path"
 	"testbeego/models"
+	"testbeego/tool"
 
-	fdfs_clients "testbeego/fdfs_client"
+	// fdfs_clients "testbeego/fdfs_client"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/gomodule/redigo/redis"
-	// "github.com/tedcy/fdfs_client"
 )
 
 type ArticleController struct {
@@ -313,6 +313,7 @@ func UploadFile(this *beego.Controller, filePath string) string {
 	//2.文件格式
 	//a.jpg
 	ext := path.Ext(head.Filename)
+	log.Println("用户上传文件的拓展名：", ext)
 	if ext != ".jpg" && ext != ".png" && ext != ".jpeg" {
 		this.Data["errmsg"] = "文件格式错误。请重新上传"
 		this.TplName = "add.html"
@@ -320,21 +321,20 @@ func UploadFile(this *beego.Controller, filePath string) string {
 	}
 
 	//3.防止重名
-	// fileName := tool.RandStringRunes(6) + ext
-	// logs.Info("fileName: ", fileName)
+	fileName := tool.RandStringRunes(6) + ext
+	logs.Info("fileName: ", fileName)
 	// 本地存储
-	// this.SaveToFile(filePath, "./static/img/"+fileName)
-	// return "/static/img/" + fileName
+	this.SaveToFile(filePath, "./static/img/"+fileName)
+	return "/static/img/" + fileName
 
 	// client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.conf")
-
-	// client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.example.conf")
+	// // client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.example.conf")
 	// if err != nil {
 	// 	logs.Error("fdfs_error: ", err)
 	// }
-	// logs.Info(client)
+	// // logs.Info(client)
 
-	// //创建文件字节切片存储文件字节流数据
+	// // //创建文件字节切片存储文件字节流数据
 	// fileBuffer := make([]byte, head.Size)
 	// file.Read(fileBuffer)
 	// res, err := client.UploadByBuffer(fileBuffer, ext[1:])
@@ -351,22 +351,26 @@ func UploadFile(this *beego.Controller, filePath string) string {
 	// nil
 
 	// return
-	clients, err := fdfs_clients.NewFdfsClient("/etc/fdfs/client.example.conf")
-	if err != nil {
-		log.Println("fastfdsc出错", err)
-		return ""
-	}
 	//创建文件字节切片存储文件字节流数据
-	fileBuffers := make([]byte, head.Size)
-	file.Read(fileBuffers)
-	ress, err := clients.UploadAppenderByBuffer(fileBuffers, ext[1:])
-	if err != nil {
-		log.Println("文件上传失败：", err)
-		return ""
-	}
-	log.Println("文件上传成功：", ress)
-	defer file.Close()
-	return ress.RemoteFileId
+	// fileBuffers := make([]byte, head.Size)
+	// file.Read(fileBuffers)
+
+	// // clients, err := fdfs_clients.NewFdfsClient("/etc/fdfs/client.example.conf")
+	// clients, err := fdfs_clients.NewFdfsClient("/etc/fdfs/client.conf")
+	// if err != nil {
+	// 	log.Println("fastfdsc出错", err)
+	// 	return ""
+	// }
+
+	// else 本地引入文件
+	// ress, err := clients.UploadByBuffer(fileBuffers, ext[1:])
+	// if err != nil {
+	// 	log.Println("文件上传失败：", err)
+	// 	return ""
+	// }
+	// log.Println("文件上传成功：", ress)
+	// defer file.Close()
+	// return ress.RemoteFileId
 
 }
 

@@ -8,5 +8,5 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.5.1 // indirect
-// github.com/tedcy/fdfs_client v0.0.0-20200106031142-21a04994525a
+	github.com/tedcy/fdfs_client v0.0.0-20200106031142-21a04994525a
 )
