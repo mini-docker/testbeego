@@ -3,15 +3,18 @@ package controllers
 import (
 	"bytes"
 	"encoding/gob"
+	"log"
 	"math"
 	"path"
 	"testbeego/models"
-	"testbeego/tool"
+
+	fdfs_clients "github.com/tRavAsty/fdfs_client"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/gomodule/redigo/redis"
+	// "github.com/tedcy/fdfs_client"
 )
 
 type ArticleController struct {
@@ -284,6 +287,7 @@ func (this *ArticleController) ShowUpdateArticle() {
 }
 
 //封装上传文件函数
+// func UploadFile(this *beego.Controller, filePath string) string {
 func UploadFile(this *beego.Controller, filePath string) string {
 
 	//处理文件上传
@@ -316,14 +320,14 @@ func UploadFile(this *beego.Controller, filePath string) string {
 	}
 
 	//3.防止重名
-	fileName := tool.RandStringRunes(6) + ext
+	// fileName := tool.RandStringRunes(6) + ext
 	// logs.Info("fileName: ", fileName)
 	// 本地存储
-	this.SaveToFile(filePath, "./static/img/"+fileName)
+	// this.SaveToFile(filePath, "./static/img/"+fileName)
+	// return "/static/img/" + fileName
 
-	return "/static/img/" + fileName
+	// client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.conf")
 
-	// // client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.conf")
 	// client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.example.conf")
 	// if err != nil {
 	// 	logs.Error("fdfs_error: ", err)
@@ -341,9 +345,28 @@ func UploadFile(this *beego.Controller, filePath string) string {
 	// }
 	// logs.Info("fdfs文件上传成功：", res)
 	// defer file.Close()
-	// return res.RemoteFileId, nil
+	// return res
+
+	// return res.RemoteFileId
+	// nil
 
 	// return
+	clients, err := fdfs_clients.NewFdfsClient("/etc/fdfs/client.example.conf")
+	if err != nil {
+		log.Println("fastfdsc出错", err)
+		return ""
+	}
+	//创建文件字节切片存储文件字节流数据
+	fileBuffers := make([]byte, head.Size)
+	file.Read(fileBuffers)
+	ress, err := clients.UploadAppenderByBuffer(fileBuffers, ext[1:])
+	if err != nil {
+		log.Println("文件上传失败：", err)
+		return ""
+	}
+	log.Println("文件上传成功：", ress)
+	defer file.Close()
+	return ress.RemoteFileId
 
 }
 
