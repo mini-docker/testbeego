@@ -8,7 +8,7 @@ import (
 	"path"
 	"testbeego/models"
 
-	fdfs_clients "github.com/tRavAsty/fdfs_client"
+	fdfs_clients "testbeego/fdfs_client"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
