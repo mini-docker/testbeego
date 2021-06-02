@@ -318,9 +318,32 @@ func UploadFile(this *beego.Controller, filePath string) string {
 	//3.防止重名
 	fileName := tool.RandStringRunes(6) + ext
 	// logs.Info("fileName: ", fileName)
-	//存储
+	// 本地存储
 	this.SaveToFile(filePath, "./static/img/"+fileName)
+
 	return "/static/img/" + fileName
+
+	// // client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.conf")
+	// client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.example.conf")
+	// if err != nil {
+	// 	logs.Error("fdfs_error: ", err)
+	// }
+	// logs.Info(client)
+
+	// //创建文件字节切片存储文件字节流数据
+	// fileBuffer := make([]byte, head.Size)
+	// file.Read(fileBuffer)
+	// res, err := client.UploadByBuffer(fileBuffer, ext[1:])
+	// logs.Info(res, "fffm")
+	// if err != nil {
+	// 	logs.Error("文件上传失败：", err)
+	// 	return ""
+	// }
+	// logs.Info("fdfs文件上传成功：", res)
+	// defer file.Close()
+	// return res.RemoteFileId, nil
+
+	// return
 
 }
 
