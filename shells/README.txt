@@ -15,5 +15,6 @@ ps aux | grep nginx
 ps aux | grep fds 
 
 
+FastDFS v6.07
 
 
