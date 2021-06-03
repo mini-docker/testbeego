@@ -3,8 +3,10 @@ package fdfs_client
 import (
 	"errors"
 	"fmt"
-	"github.com/Sirupsen/logrus"
 	"os"
+
+	"github.com/sirupsen/logrus"
+
 	//"strings"
 	"testing"
 	"time"
