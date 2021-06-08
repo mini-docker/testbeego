@@ -3,14 +3,14 @@ package controllers
 import (
 	"bytes"
 	"encoding/gob"
-	"log"
+	"io/ioutil"
 	"math"
-	"path"
+	"os"
 	"testbeego/models"
-	"testbeego/tool"
 
 	// fdfs_clients "testbeego/fdfs_client"
 
+	"github.com/astaxie/beego/httplib"
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
@@ -19,6 +19,9 @@ import (
 
 type ArticleController struct {
 	beego.Controller
+}
+type testSruct struct {
+	src string
 }
 
 //展示文章列表页
@@ -289,89 +292,17 @@ func (this *ArticleController) ShowUpdateArticle() {
 //封装上传文件函数
 // func UploadFile(this *beego.Controller, filePath string) string {
 func UploadFile(this *beego.Controller, filePath string) string {
-
-	//处理文件上传
-	file, head, err := this.GetFile(filePath)
-	if head.Filename == "" {
-		return "NoImg"
-	}
-
+	_, header, _ := this.GetFile(filePath)
+	this.SaveToFile(filePath, "static/img/"+header.Filename)
+	defer os.Remove("static/img/" + header.Filename)
+	req := httplib.Post("http://172.20.10.4:8080/group1/upload")
+	req.PostFile("file", "static/img/"+header.Filename)
+	resp, err := req.DoRequest()
 	if err != nil {
-		this.Data["errmsg"] = "文件上传失败"
-		this.TplName = "add.html"
-		return ""
 	}
-	defer file.Close()
-
-	//1.文件大小
-	if head.Size > 5000000 {
-		this.Data["errmsg"] = "文件太大，请重新上传"
-		this.TplName = "add.html"
-		return ""
-	}
-
-	//2.文件格式
-	//a.jpg
-	ext := path.Ext(head.Filename)
-	log.Println("用户上传文件的拓展名：", ext)
-	if ext != ".jpg" && ext != ".png" && ext != ".jpeg" {
-		this.Data["errmsg"] = "文件格式错误。请重新上传"
-		this.TplName = "add.html"
-		return ""
-	}
-
-	//3.防止重名
-	fileName := tool.RandStringRunes(6) + ext
-	logs.Info("fileName: ", fileName)
-	// 本地存储
-	this.SaveToFile(filePath, "./static/img/"+fileName)
-	return "/static/img/" + fileName
-
-	// client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.conf")
-	// // client, err := fdfs_client.NewClientWithConfig("/etc/fdfs/client.example.conf")
-	// if err != nil {
-	// 	logs.Error("fdfs_error: ", err)
-	// }
-	// // logs.Info(client)
-
-	// // //创建文件字节切片存储文件字节流数据
-	// fileBuffer := make([]byte, head.Size)
-	// file.Read(fileBuffer)
-	// res, err := client.UploadByBuffer(fileBuffer, ext[1:])
-	// logs.Info(res, "fffm")
-	// if err != nil {
-	// 	logs.Error("文件上传失败：", err)
-	// 	return ""
-	// }
-	// logs.Info("fdfs文件上传成功：", res)
-	// defer file.Close()
-	// return res
-
-	// return res.RemoteFileId
-	// nil
-
-	// return
-	//创建文件字节切片存储文件字节流数据
-	// fileBuffers := make([]byte, head.Size)
-	// file.Read(fileBuffers)
-
-	// // clients, err := fdfs_clients.NewFdfsClient("/etc/fdfs/client.example.conf")
-	// clients, err := fdfs_clients.NewFdfsClient("/etc/fdfs/client.conf")
-	// if err != nil {
-	// 	log.Println("fastfdsc出错", err)
-	// 	return ""
-	// }
-
-	// else 本地引入文件
-	// ress, err := clients.UploadByBuffer(fileBuffers, ext[1:])
-	// if err != nil {
-	// 	log.Println("文件上传失败：", err)
-	// 	return ""
-	// }
-	// log.Println("文件上传成功：", ress)
-	// defer file.Close()
-	// return ress.RemoteFileId
-
+	defer resp.Body.Close()
+	xx, _ := ioutil.ReadAll(resp.Body)
+	return string(xx)
 }
 
 //处理编辑界面数据
@@ -449,7 +380,9 @@ func (this *ArticleController) HandleAddType() {
 
 	//获取数据
 	typeName := this.GetString("typeName")
+
 	logoPath := UploadFile(&this.Controller, "uploadlogo")
+
 	typeImage := UploadFile(&this.Controller, "uploadTypeImage")
 	//校验数据
 	logs.Info(typeName, logoPath, typeImage)
