@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"log"
 	"math"
 	"os"
+	"path"
 	"testbeego/models"
+	"testbeego/tool"
 
 	// fdfs_clients "testbeego/fdfs_client"
 
@@ -306,37 +309,52 @@ func (this *ArticleController) ShowUpdateArticle() {
 
 //封装上传文件函数
 func UploadFile(this *beego.Controller, filePath string) string {
-	_, header, _ := this.GetFile(filePath)
-	this.SaveToFile(filePath, "static/img/"+header.Filename)
-	defer os.Remove("static/img/" + header.Filename)
+	file, head, err := this.GetFile(filePath)
+	if head.Filename == "" {
+		return "NoImg"
+	}
+
+	if err != nil {
+		this.Data["errmsg"] = "文件上传失败"
+		this.TplName = "add.html"
+		return ""
+	}
+	defer file.Close()
+
+	//1.文件大小
+	if head.Size > 5000000 {
+		this.Data["errmsg"] = "文件太大，请重新上传"
+		this.TplName = "add.html"
+		return ""
+	}
+
+	//2.文件格式
+	//a.jpg
+	ext := path.Ext(head.Filename)
+	log.Println("用户上传文件的拓展名：", ext)
+	if ext != ".jpg" && ext != ".png" && ext != ".jpeg" {
+		this.Data["errmsg"] = "文件格式错误。请重新上传"
+		this.TplName = "add.html"
+		return ""
+	}
+
+	//3.防止重名
+	fileName := tool.RandStringRunes(6) + ext
+	logs.Info("fileName: ", fileName)
+	this.SaveToFile(filePath, "static/img/"+fileName)
+	defer os.Remove("static/img/" + fileName)
 
 	var obj FileResult
 	req := httplib.Post("http://localhost:8080/group1/upload")
-	req.PostFile("file", "static/img/"+header.Filename)
+	req.PostFile("file", "static/img/"+fileName)
 	req.Param("output", "json")
 	req.Param("scene", "")
 	req.Param("path", "testimg")
 	req.ToJSON(&obj)
-	fmt.Println("obj.Url:", obj.Url)
+	logs.Info("obj", obj)
+	fmt.Println("obj.Path:", obj.Path)
 
-	// if obj.Md5 != testSmallFileMd5 {
-	// 	t.Error("file not equal")
-	// } else {
-	// 	req = httplib.Get(obj.Url)
-	// 	req.ToFile(CONST_DOWNLOAD_SMALL_FILE_NAME)
-	// 	if md5sum, err := testUtil.GetFileSumByName(CONST_DOWNLOAD_SMALL_FILE_NAME, ""); md5sum != testSmallFileMd5 {
-	// 		t.Error("small file not equal", err)
-	// 	}
-	// }
-	return obj.Url
-	// req := httplib.Post("http://172.20.10.4:8080/group1/upload")
-	// req.PostFile("file", "static/img/"+header.Filename)
-	// resp, err := req.DoRequest()
-	// if err != nil {
-	// }
-	// defer resp.Body.Close()
-	// xx, _ := ioutil.ReadAll(resp.Body)
-	// return string(xx)
+	return obj.Path
 }
 
 //处理编辑界面数据
