@@ -2,7 +2,7 @@
 lastupdate.tmp
 testbeego
 __debug_bin
-
+/static/img
 
 # Binaries for programs and plugins
 *.exe

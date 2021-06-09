@@ -3,7 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/gob"
-	"io/ioutil"
+	"fmt"
 	"math"
 	"os"
 	"testbeego/models"
@@ -22,6 +22,21 @@ type ArticleController struct {
 }
 type testSruct struct {
 	src string
+}
+
+type FileResult struct {
+	Url     string `json:"url"`
+	Md5     string `json:"md5"`
+	Path    string `json:"path"`
+	Domain  string `json:"domain"`
+	Scene   string `json:"scene"`
+	Size    int64  `json:"size"`
+	ModTime int64  `json:"mtime"`
+	//Just for Compatibility
+	Scenes  string `json:"scenes"`
+	RetMsg  string `json:"retmsg"`
+	RetCode int    `json:"retcode"`
+	Src     string `json:"src"`
 }
 
 //展示文章列表页
@@ -290,19 +305,38 @@ func (this *ArticleController) ShowUpdateArticle() {
 }
 
 //封装上传文件函数
-// func UploadFile(this *beego.Controller, filePath string) string {
 func UploadFile(this *beego.Controller, filePath string) string {
 	_, header, _ := this.GetFile(filePath)
 	this.SaveToFile(filePath, "static/img/"+header.Filename)
 	defer os.Remove("static/img/" + header.Filename)
-	req := httplib.Post("http://172.20.10.4:8080/group1/upload")
+
+	var obj FileResult
+	req := httplib.Post("http://localhost:8080/group1/upload")
 	req.PostFile("file", "static/img/"+header.Filename)
-	resp, err := req.DoRequest()
-	if err != nil {
-	}
-	defer resp.Body.Close()
-	xx, _ := ioutil.ReadAll(resp.Body)
-	return string(xx)
+	req.Param("output", "json")
+	req.Param("scene", "")
+	req.Param("path", "testimg")
+	req.ToJSON(&obj)
+	fmt.Println("obj.Url:", obj.Url)
+
+	// if obj.Md5 != testSmallFileMd5 {
+	// 	t.Error("file not equal")
+	// } else {
+	// 	req = httplib.Get(obj.Url)
+	// 	req.ToFile(CONST_DOWNLOAD_SMALL_FILE_NAME)
+	// 	if md5sum, err := testUtil.GetFileSumByName(CONST_DOWNLOAD_SMALL_FILE_NAME, ""); md5sum != testSmallFileMd5 {
+	// 		t.Error("small file not equal", err)
+	// 	}
+	// }
+	return obj.Url
+	// req := httplib.Post("http://172.20.10.4:8080/group1/upload")
+	// req.PostFile("file", "static/img/"+header.Filename)
+	// resp, err := req.DoRequest()
+	// if err != nil {
+	// }
+	// defer resp.Body.Close()
+	// xx, _ := ioutil.ReadAll(resp.Body)
+	// return string(xx)
 }
 
 //处理编辑界面数据

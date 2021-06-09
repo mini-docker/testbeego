@@ -10,6 +10,7 @@ import (
 func main() {
 	beego.AddFuncMap("ShowPrePage", ShowPrePage)
 	beego.AddFuncMap("ShowNextPage", ShowNextPage)
+
 	beego.Run()
 }
 
