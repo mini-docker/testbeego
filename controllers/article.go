@@ -458,20 +458,19 @@ func (this *ArticleController) HandleAddType() {
 
 //删除类型
 func (this *ArticleController) DeleteType() {
-	/*
-		//获取数据
-		id,err:=this.GetInt("id")
-		//校验数据
-		if err != nil{
-			beego.Error("删除类型错误",err)
-			return
-		}
-		//处理数据
-		o := orm.NewOrm()
-		var articleType models.ArticleType
-		articleType.Id = id
-		o.Delete(&articleType)
-		//返回视图
-		this.Redirect("/article/addType",302)
-	*/
+	//获取数据
+	id, err := this.GetInt("id")
+	logs.Info("Id: ", id)
+	//校验数据
+	if err != nil {
+		logs.Error("删除类型错误", err)
+		return
+	}
+	//处理数据
+	o := orm.NewOrm()
+	var types models.GoodsType
+	types.Id = id
+	o.Delete(&types)
+	//返回视图
+	this.Redirect("/Article/AddArticleType", 302)
 }
